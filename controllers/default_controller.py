@@ -1,34 +1,50 @@
 from ucsmsdk.ucshandle import UcsHandle
-import json
-
-logedin = True
-globalhandle = {}
 
 def login_get(host = None, user = None, password = None):
-    global globalhandle
     handle = UcsHandle(host, user, password,secure=False);
-    globalhandle = handle;
     if handle.login():
         return handle.cookie;
 
 
+def systemGetAll(host = None, user = None, password = None):
+    handle = UcsHandle(host, user, password, secure=False)
+    elements = [{"ciscoXmlName": "EquipmentChassis", "humanReadableName": "Chassis"},
+                {"ciscoXmlName": "NetworkElement", "humanReadableName": "Fabric Interconnects"},
+                {"ciscoXmlName": "EquipmentFex", "humanReadableName": "FEX"},
+                {"ciscoXmlName": "computeRackUnit", "humanReadableName": "Servers"}]
+    finalObjs = {}
+    for x in elements:
+        units = []
+        components = handle.query_children(in_dn="sys", class_id=x["ciscoXmlName"])
+        for y in components:
+            subElement = {"relative_path": "/"+(vars(y))["dn"]}
+            units.append(subElement)
+        finalObjs[x["humanReadableName"]]=units
+        handle.logout()
+    return finalObjs
 
-def systemGetAll():
-    global globalhandle
-    if (logedin):
-        elements = [{"ciscoXmlName": "EquipmentChassis", "humanReadableName": "Chassis"},
-                    {"ciscoXmlName": "NetworkElement", "humanReadableName": "Fabric Interconnects"},
-                    {"ciscoXmlName": "EquipmentFex", "humanReadableName": "FEX"},
-                    {"ciscoXmlName": "computeRackUnit", "humanReadableName": "Servers"}]
-        finalObjs = []
-        for x in elements:
-            units = []
-            components = globalhandle.query_children(in_dn="sys", class_id=x["ciscoXmlName"])
-            componentObj = {
-                "name": x["humanReadableName"],
-                "members": units}
-            for y in components:
-                subElement = {"relative_path": "/"+(vars(y))["dn"]}
-                units.append(subElement)
-            finalObjs.append(componentObj)
-        return finalObjs
+def getRackmount(host = None, user = None, password = None):
+    data = []
+    handle = UcsHandle(host, user, password, secure=False)
+    computeRackUnit = handle.query_children(in_dn="sys", class_id="computeRackUnit")
+    for x in computeRackUnit:
+        server={}
+        server["name"]=x.rn
+        server["path"]=x.dn
+        server["macs"]=[]
+        macs = handle.query_children(in_dn=x.dn, class_id='PciEquipSlot')
+        for y in macs:
+            slot={}
+            identifiers=[]
+            slot["dn"]= y.dn
+            identifiers.append(y.mac_left)
+            identifiers.append(y.mac_right)
+            slot["identifiers"]=identifiers
+            server["macs"].append(slot)
+        data.append(server)
+        handle.logout()
+    return data
+
+
+
+

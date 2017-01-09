@@ -38,9 +38,53 @@ paths:
       - "default"
       description: "Discover USC managed objects"
       operationId: "controllers.default_controller.systemGetAll"
+      parameters:
+      - name: "host"
+        in: "query"
+        description: "USC manger host name or IP"
+        required: false
+        type: "string"
+      - name: "user"
+        in: "query"
+        description: "UCS manger user name"
+        required: false
+        type: "string"
+      - name: "password"
+        in: "query"
+        description: "UCS manger user password"
+        required: false
+        type: "string"
       responses:
         200:
           description: "Successful data fetch"
+      x-tags:
+      - tag: "default"
+
+  /rackmount:
+    get:
+      tags:
+      - "default"
+      description: "Discover USC managed rackmount servers"
+      operationId: "controllers.default_controller.getRackmount"
+      parameters:
+      - name: "host"
+        in: "query"
+        description: "USC manger host name or IP"
+        required: false
+        type: "string"
+      - name: "user"
+        in: "query"
+        description: "UCS manger user name"
+        required: false
+        type: "string"
+      - name: "password"
+        in: "query"
+        description: "UCS manger user password"
+        required: false
+        type: "string"
+      responses:
+        200:
+          description: "Successful data fetch of rackmount"
       x-tags:
       - tag: "default"
 
