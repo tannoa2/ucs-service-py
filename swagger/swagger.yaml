@@ -31,4 +31,17 @@ paths:
           description: "Successful login"
       x-tags:
       - tag: "default"
+
+  /sys:
+    get:
+      tags:
+      - "default"
+      description: "Discover USC managed objects"
+      operationId: "controllers.default_controller.systemGetAll"
+      responses:
+        200:
+          description: "Successful data fetch"
+      x-tags:
+      - tag: "default"
+
 definitions: {}
