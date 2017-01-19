@@ -8,42 +8,39 @@ def login_get(host = None, user = None, password = None):
 
 def systemGetAll(host = None, user = None, password = None):
     handle = UcsHandle(host, user, password, secure=False)
-    elements = [{"ciscoXmlName": "EquipmentChassis", "humanReadableName": "Chassis"},
-                {"ciscoXmlName": "NetworkElement", "humanReadableName": "Fabric Interconnects"},
-                {"ciscoXmlName": "EquipmentFex", "humanReadableName": "FEX"},
-                {"ciscoXmlName": "computeRackUnit", "humanReadableName": "Servers"}]
-    finalObjs = {}
-    for x in elements:
-        units = []
-        components = handle.query_children(in_dn="sys", class_id=x["ciscoXmlName"])
-        for y in components:
-            subElement = {"relative_path": "/"+(vars(y))["dn"]}
-            units.append(subElement)
-        finalObjs[x["humanReadableName"]]=units
-        handle.logout()
-    return finalObjs
+    if handle.login():
+        elements = [{"ciscoXmlName": "EquipmentChassis", "humanReadableName": "Chassis"},
+                    {"ciscoXmlName": "NetworkElement", "humanReadableName": "Fabric Interconnects"},
+                    {"ciscoXmlName": "EquipmentFex", "humanReadableName": "FEX"},
+                    {"ciscoXmlName": "computeRackUnit", "humanReadableName": "Servers"}]
+        finalObjs = {}
+        for x in elements:
+            units = []
+            components = handle.query_children(in_dn="sys", class_id=x["ciscoXmlName"])
+            for y in components:
+                subElement = {"relative_path": "/"+(vars(y))["dn"]}
+                units.append(subElement)
+            finalObjs[x["humanReadableName"]]=units
+            handle.logout()
+        return finalObjs
 
 def getRackmount(host = None, user = None, password = None):
     data = []
     handle = UcsHandle(host, user, password, secure=False)
-    computeRackUnit = handle.query_children(in_dn="sys", class_id="computeRackUnit")
-    for x in computeRackUnit:
-        server={}
-        server["name"]=x.rn
-        server["path"]=x.dn
-        server["macs"]=[]
-        macs = handle.query_children(in_dn=x.dn, class_id='PciEquipSlot')
-        for y in macs:
-            slot={}
-            identifiers=[]
-            slot["dn"]= y.dn
-            identifiers.append(y.mac_left)
-            identifiers.append(y.mac_right)
-            slot["identifiers"]=identifiers
-            server["macs"].append(slot)
-        data.append(server)
-        handle.logout()
-    return data
+    if handle.login():
+        computeRackUnit = handle.query_children(in_dn="sys", class_id="computeRackUnit")
+        for x in computeRackUnit:
+            server={}
+            server["name"]=x.rn
+            server["path"]=x.dn
+            server["macs"]=[]
+            macs = handle.query_children(in_dn=x.dn, class_id='PciEquipSlot')
+            for y in macs:
+                server["macs"].append(y.mac_left)
+                server["macs"].append(y.mac_right)
+            data.append(server)
+            handle.logout()
+        return data
 
 
 
